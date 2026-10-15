@@ -24,9 +24,13 @@ Write-Host "Backed up current settings to: $backupPath" -ForegroundColor Green
 # Function to strip JSONC (comments and trailing commas)
 function Strip-Jsonc {
     param([string]$Text)
-    $Text = $Text -replace '//.*$', ''
-    $Text = $Text -replace '/\*[\s\S]*?\*/', ''
-    $Text = $Text -replace ',\s*([}\]])', '$1'
+    # Remove single-line and multi-line comments outside JSON string literals
+    $Text = [regex]::Replace($Text, '("(\\.|[^"\\])*")|//[^\r\n]*|/\*[\s\S]*?\*/', {
+        param($m)
+        if ($m.Groups[1].Success) { $m.Groups[1].Value } else { '' }
+    })
+    # Remove trailing commas before } or ]
+    $Text = [regex]::Replace($Text, ',\s*([}\]])', '$1')
     return $Text
 }
 

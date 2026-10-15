@@ -124,12 +124,13 @@ if (-not (Test-Path $settingsDir)) {
 # Function to strip JSONC features (comments and trailing commas) for JSON parsing
 function Strip-Jsonc {
     param([string]$Text)
-    # Remove single-line comments
-    $Text = $Text -replace '//.*$', ''
-    # Remove multi-line comments
-    $Text = $Text -replace '/\*[\s\S]*?\*/', ''
+    # Remove single-line and multi-line comments outside JSON string literals
+    $Text = [regex]::Replace($Text, '("(\\.|[^"\\])*")|//[^\r\n]*|/\*[\s\S]*?\*/', {
+        param($m)
+        if ($m.Groups[1].Success) { $m.Groups[1].Value } else { '' }
+    })
     # Remove trailing commas before } or ]
-    $Text = $Text -replace ',\s*([}\]])', '$1'
+    $Text = [regex]::Replace($Text, ',\s*([}\]])', '$1')
     return $Text
 }
 
