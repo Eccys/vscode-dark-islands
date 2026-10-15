@@ -129,8 +129,11 @@ function Strip-Jsonc {
         param($m)
         if ($m.Groups[1].Success) { $m.Groups[1].Value } else { '' }
     })
-    # Remove trailing commas before } or ]
-    $Text = [regex]::Replace($Text, ',\s*([}\]])', '$1')
+    # Remove trailing commas before } or ] outside JSON string literals
+    $Text = [regex]::Replace($Text, '("(\\.|[^"\\])*")|,\s*(?=[}\]])', {
+        param($m)
+        if ($m.Groups[1].Success) { $m.Groups[1].Value } else { '' }
+    })
     return $Text
 }
 
